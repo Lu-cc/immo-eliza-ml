@@ -62,6 +62,10 @@ def train():
 
     data.dropna(subset=["price"], inplace=True)
     
+    data = data[data["nbr_bedrooms"] < 50]
+    
+    data = data[data["total_area_sqm"] < 200]
+    
     #Drop missing values from cat_features
     data[cat_features] = data[cat_features].replace("MISSING", None)
     data[cat_features].dropna() 
