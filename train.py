@@ -43,6 +43,7 @@ def train():
         "region",
         "province",
         "locality",
+        "zip_code",
         "state_building",
         "epc",
         "heating_type",

@@ -20,7 +20,7 @@ def predict(input_dataset, output_dataset):
     ### -------------------------------------------------- ###
 
     # Load the model artifacts using joblib
-    artifacts = joblib.load("models/artifacts.joblib")
+    artifacts = joblib.load("models/artifacts_lasso.joblib")
 
     # Unpack the artifacts
     num_features = artifacts["features"]["num_features"]
@@ -35,6 +35,7 @@ def predict(input_dataset, output_dataset):
     data = data[num_features + fl_features + cat_features]
 
     # Apply imputer and encoder on data
+    data[num_features] = scaler.transform(data[num_features])
     data[num_features] = imputer.transform(data[num_features])
     data_cat = enc.transform(data[cat_features]).toarray()
 

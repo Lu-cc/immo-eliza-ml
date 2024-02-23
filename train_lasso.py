@@ -43,6 +43,7 @@ def train():
         "region",
         "province",
         "locality",
+        "zip_code",
         "state_building",
         "epc",
         "heating_type",
@@ -55,36 +56,37 @@ def train():
 
     max_value = Q3 + (1.5 * IQR)
     min_value = Q1 - (1.5 * IQR)
-    
+
     outliers_mask = (data["price"] < min_value) | (data["price"] > max_value)
     data.loc[outliers_mask, "price"] = np.nan
 
     data.dropna(subset=["price"], inplace=True)
-    
+
     Q1 = data["primary_energy_consumption_sqm"].quantile(0.25)
     Q3 = data["primary_energy_consumption_sqm"].quantile(0.75)
     IQR = Q3 - Q1
 
     max_value = Q3 + (1.5 * IQR)
     min_value = Q1 - (1.5 * IQR)
-    
-    outliers_mask = (data["primary_energy_consumption_sqm"] < min_value) | (data["primary_energy_consumption_sqm"] > max_value)
+
+    outliers_mask = (data["primary_energy_consumption_sqm"] < min_value) | (
+        data["primary_energy_consumption_sqm"] > max_value
+    )
     data.loc[outliers_mask, "primary_energy_consumption_sqm"] = np.nan
 
-    data.dropna(subset=["primary_energy_consumption_sqm"], inplace=True)  
-    
+    data.dropna(subset=["primary_energy_consumption_sqm"], inplace=True)
+
     data = data[data["nbr_bedrooms"] < 25]
-    
+
     data = data[data["total_area_sqm"] < 200]
-    
-    #data = data[data["longitude"] > 0]
-    
-    #Drop missing values from cat_features
-    
+
+    # data = data[data["longitude"] > 0]
+
+    # Drop missing values from cat_features
+
     data[cat_features] = data[cat_features].replace("MISSING", None)
     data[cat_features].dropna()
-    
-    
+
     # Split the data into features and target
     X = data[num_features + fl_features + cat_features]
     y = data["price"]
@@ -106,7 +108,7 @@ def train():
     X_test[num_features] = scaler.transform(X_test[num_features])
 
     # Convert categorical columns with one-hot encoding using OneHotEncoder
-    enc = OneHotEncoder()
+    enc = OneHotEncoder(handle_unknown="ignore")
     enc.fit(X_train[cat_features])
     X_train_cat = enc.transform(X_train[cat_features]).toarray()
     X_test_cat = enc.transform(X_test[cat_features]).toarray()
