@@ -47,7 +47,7 @@ def train():
         "region",
         "province",
         "locality",
-        #"zip_code",
+        "zip_code",
         "state_building",
         "epc",
         "heating_type",
@@ -55,16 +55,15 @@ def train():
     ]
         
     #Eliminating the outliers
-    for feature in data[num_features]:
-        Q1 = data[feature].quantile(0.25)
-        Q3 = data[feature].quantile(0.75)
-        IQR = Q3 - Q1
-            
-        max = Q3 + (1.5 * IQR)
-        min = Q1 - (1.5 * IQR)
-            
-        data.loc[data[feature] < min, feature] = np.nan
-        data.loc[data[feature] > max, feature] = np.nan
+    Q1 = data["price"].quantile(0.25)
+    Q3 = data["price"].quantile(0.75)
+    IQR = Q3 - Q1
+        
+    max = Q3 + (1.5 * IQR)
+    min = Q1 - (1.5 * IQR)
+        
+    data.loc[data["price"] < min, "price"] = np.nan
+    data.loc[data["price"] > max, "price"] = np.nan
     
     #Scaling
     scaler = MinMaxScaler()

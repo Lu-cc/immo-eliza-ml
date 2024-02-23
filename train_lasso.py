@@ -1,7 +1,7 @@
 import joblib
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Lasso
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -46,9 +46,9 @@ def train():
         "state_building",
         "epc",
         "heating_type",
-        "equipped_kitchen"
+        "equipped_kitchen",
     ]
-    
+
     #Outliers handling
     Q1 = data["price"].quantile(0.25)
     Q3 = data["price"].quantile(0.75)
@@ -60,12 +60,11 @@ def train():
     outliers_mask = (data["price"] < min_value) | (data["price"] > max_value)
     data.loc[outliers_mask, "price"] = np.nan
 
-    data.dropna(subset=["price"], inplace=True)  
+    data.dropna(subset=["price"], inplace=True)
     
     #Drop missing values from cat_features
-    
     data[cat_features] = data[cat_features].replace("MISSING", None)
-    data[cat_features].dropna()
+    data[cat_features].dropna() 
 
     # Split the data into features and target
     X = data[num_features + fl_features + cat_features]
@@ -81,8 +80,8 @@ def train():
     imputer.fit(X_train[num_features])
     X_train[num_features] = imputer.transform(X_train[num_features])
     X_test[num_features] = imputer.transform(X_test[num_features])
-    
-    #Standardizing the numerical features
+
+    # Standardizing the numerical features
     scaler = StandardScaler()
     X_train[num_features] = scaler.fit_transform(X_train[num_features])
     X_test[num_features] = scaler.transform(X_test[num_features])
@@ -113,12 +112,12 @@ def train():
     print(f"Features: \n {X_train.columns.tolist()}")
 
     # Train the model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+    model_lasso = Lasso(alpha=0.1)  # regularization strength
+    model_lasso.fit(X_train, y_train)
 
     # Evaluate the model
-    train_score = r2_score(y_train, model.predict(X_train))
-    test_score = r2_score(y_test, model.predict(X_test))
+    train_score = r2_score(y_train, model_lasso.predict(X_train))
+    test_score = r2_score(y_test, model_lasso.predict(X_test))
     print(f"Train R² score: {train_score}")
     print(f"Test R² score: {test_score}")
 
@@ -131,10 +130,10 @@ def train():
         },
         "imputer": imputer,
         "enc": enc,
-        "model": model,
-        "scaler": scaler
+        "model": model_lasso,
+        "scaler": scaler,
     }
-    joblib.dump(artifacts, "models/artifacts.joblib")
+    joblib.dump(artifacts, "models/artifacts_lasso.joblib")
 
 
 if __name__ == "__main__":

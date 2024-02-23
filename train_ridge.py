@@ -1,7 +1,7 @@
 import joblib
 import pandas as pd
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -46,21 +46,21 @@ def train():
         "state_building",
         "epc",
         "heating_type",
-        "equipped_kitchen"
+        "equipped_kitchen",
     ]
-    
-    #Outliers handling
+
+    # Outliers handling
     Q1 = data["price"].quantile(0.25)
     Q3 = data["price"].quantile(0.75)
     IQR = Q3 - Q1
 
     max_value = Q3 + (1.5 * IQR)
     min_value = Q1 - (1.5 * IQR)
-    
+
     outliers_mask = (data["price"] < min_value) | (data["price"] > max_value)
     data.loc[outliers_mask, "price"] = np.nan
 
-    data.dropna(subset=["price"], inplace=True)  
+    data.dropna(subset=["price"], inplace=True)
     
     #Drop missing values from cat_features
     
@@ -81,8 +81,8 @@ def train():
     imputer.fit(X_train[num_features])
     X_train[num_features] = imputer.transform(X_train[num_features])
     X_test[num_features] = imputer.transform(X_test[num_features])
-    
-    #Standardizing the numerical features
+
+    # Standardizing the numerical features
     scaler = StandardScaler()
     X_train[num_features] = scaler.fit_transform(X_train[num_features])
     X_test[num_features] = scaler.transform(X_test[num_features])
@@ -113,12 +113,12 @@ def train():
     print(f"Features: \n {X_train.columns.tolist()}")
 
     # Train the model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+    model_ridge = Ridge(alpha=0.1) 
+    model_ridge.fit(X_train, y_train)
 
     # Evaluate the model
-    train_score = r2_score(y_train, model.predict(X_train))
-    test_score = r2_score(y_test, model.predict(X_test))
+    train_score = r2_score(y_train, model_ridge.predict(X_train))
+    test_score = r2_score(y_test, model_ridge.predict(X_test))
     print(f"Train R² score: {train_score}")
     print(f"Test R² score: {test_score}")
 
@@ -131,10 +131,10 @@ def train():
         },
         "imputer": imputer,
         "enc": enc,
-        "model": model,
-        "scaler": scaler
+        "model": model_ridge,
+        "scaler": scaler,
     }
-    joblib.dump(artifacts, "models/artifacts.joblib")
+    joblib.dump(artifacts, "models/artifacts_ridge.joblib")
 
 
 if __name__ == "__main__":

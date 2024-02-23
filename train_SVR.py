@@ -5,9 +5,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
+from sklearn import svm
+from sklearn.svm import SVC
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-
 
 def train():
     """Trains a linear regression model on the full dataset and stores output."""
@@ -46,26 +47,21 @@ def train():
         "state_building",
         "epc",
         "heating_type",
-        "equipped_kitchen"
+        "equipped_kitchen",
     ]
-    
-    #Outliers handling
+
+    # Outliers handling
     Q1 = data["price"].quantile(0.25)
     Q3 = data["price"].quantile(0.75)
     IQR = Q3 - Q1
 
     max_value = Q3 + (1.5 * IQR)
     min_value = Q1 - (1.5 * IQR)
-    
+
     outliers_mask = (data["price"] < min_value) | (data["price"] > max_value)
     data.loc[outliers_mask, "price"] = np.nan
 
-    data.dropna(subset=["price"], inplace=True)  
-    
-    #Drop missing values from cat_features
-    
-    data[cat_features] = data[cat_features].replace("MISSING", None)
-    data[cat_features].dropna()
+    data.dropna(subset=["price"], inplace=True)
 
     # Split the data into features and target
     X = data[num_features + fl_features + cat_features]
@@ -113,12 +109,12 @@ def train():
     print(f"Features: \n {X_train.columns.tolist()}")
 
     # Train the model
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+    model_SVR = svm.SVR()
+    model_SVR.fit(X_train,y_train)
 
     # Evaluate the model
-    train_score = r2_score(y_train, model.predict(X_train))
-    test_score = r2_score(y_test, model.predict(X_test))
+    train_score = r2_score(y_train, model_SVR.predict(X_train))
+    test_score = r2_score(y_test, model_SVR.predict(X_test))
     print(f"Train R² score: {train_score}")
     print(f"Test R² score: {test_score}")
 
@@ -131,8 +127,7 @@ def train():
         },
         "imputer": imputer,
         "enc": enc,
-        "model": model,
-        "scaler": scaler
+        "model": model_SVR,
     }
     joblib.dump(artifacts, "models/artifacts.joblib")
 

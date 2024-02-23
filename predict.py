@@ -29,6 +29,7 @@ def predict(input_dataset, output_dataset):
     imputer = artifacts["imputer"]
     enc = artifacts["enc"]
     model = artifacts["model"]
+    scaler = artifacts["scaler"]
 
     # Extract the used data
     data = data[num_features + fl_features + cat_features]
