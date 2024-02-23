@@ -78,7 +78,7 @@ def train():
 
     data = data[data["nbr_bedrooms"] < 25]
 
-    data = data[data["total_area_sqm"] < 200]
+    data = data[data["total_area_sqm"] < 500]
 
     # data = data[data["longitude"] > 0]
 
@@ -133,7 +133,7 @@ def train():
     print(f"Features: \n {X_train.columns.tolist()}")
 
     # Train the model
-    model_lasso = Lasso(alpha=0.1)  # regularization strength
+    model_lasso = Lasso(alpha = 0.1, selection = "random")  # regularization strength
     model_lasso.fit(X_train, y_train)
 
     # Evaluate the model
