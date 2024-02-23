@@ -49,7 +49,6 @@ def train():
         "equipped_kitchen",
     ]
 
-    #Outliers handling
     Q1 = data["price"].quantile(0.25)
     Q3 = data["price"].quantile(0.75)
     IQR = Q3 - Q1
@@ -62,14 +61,30 @@ def train():
 
     data.dropna(subset=["price"], inplace=True)
     
-    data = data[data["nbr_bedrooms"] < 50]
+    Q1 = data["primary_energy_consumption_sqm"].quantile(0.25)
+    Q3 = data["primary_energy_consumption_sqm"].quantile(0.75)
+    IQR = Q3 - Q1
+
+    max_value = Q3 + (1.5 * IQR)
+    min_value = Q1 - (1.5 * IQR)
+    
+    outliers_mask = (data["primary_energy_consumption_sqm"] < min_value) | (data["primary_energy_consumption_sqm"] > max_value)
+    data.loc[outliers_mask, "primary_energy_consumption_sqm"] = np.nan
+
+    data.dropna(subset=["primary_energy_consumption_sqm"], inplace=True)  
+    
+    data = data[data["nbr_bedrooms"] < 25]
     
     data = data[data["total_area_sqm"] < 200]
     
+    #data = data[data["longitude"] > 0]
+    
     #Drop missing values from cat_features
+    
     data[cat_features] = data[cat_features].replace("MISSING", None)
-    data[cat_features].dropna() 
-
+    data[cat_features].dropna()
+    
+    
     # Split the data into features and target
     X = data[num_features + fl_features + cat_features]
     y = data["price"]
